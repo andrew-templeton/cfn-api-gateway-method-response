@@ -1,0 +1,343 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Custom::ApiGatewayMethodResponse sample template",
+  "Parameters": {
+    "RestApiCustomResourceLambdaName": {
+      "Type": "String",
+      "Default": "CfnLambdaResource-cfn-api-gateway-restapi-0-4-0",
+      "Description": "The name of the ApiGatewayRestApi Lambda you deployed to test this stack."
+    },
+    "RestApiName": {
+      "Type": "String",
+      "Description": "Name for the API (required). Must be unique across your account for this Region."
+    },
+    "RestApiDescription": {
+      "Type": "String",
+      "Description": "Description for the API (optional)."
+    },
+    "RestApiBaseApiId": {
+      "Type": "String",
+      "Description": "API ID (not name, not ARN) from which to clone the base for the new API (optional). WARNING: Changing this value requires full replacement."
+    },
+    "MethodCustomResourceLambdaName": {
+      "Type": "String",
+      "Default": "CfnLambdaResource-cfn-api-gateway-method-0-2-0",
+      "Description": "The name of the ApiGatewayMethod Lambda you deployed to test this stack."
+    },
+    "MethodAuthorizationType": {
+      "Type": "String",
+      "Default": "NONE",
+      "Description": "Whether or not to require IAM authorization to invoke the method.",
+      "AllowedValues": [
+        "NONE",
+        "AWS_IAM"
+      ]
+    },
+    "MethodHttpMethod": {
+      "Type": "String",
+      "Default": "GET",
+      "Description": "The HTTP method your deployed Method should use.",
+      "AllowedValues": [
+        "DELETE",
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "PATCH",
+        "POST",
+        "PUT"
+      ]
+    },
+    "DoesMethodRequireApiKey": {
+      "Type": "String",
+      "Default": "NO",
+      "Description": "Whether or not to require use of an API Key on the created method.",
+      "AllowedValues": [
+        "NO",
+        "YES"
+      ]
+    },
+    "MethodResponseCustomResourceLambdaName": {
+      "Type": "String",
+      "Default": "CfnLambdaResource-cfn-api-gateway-method-response-0-1-0",
+      "Description": "The name of the ApiGatewayMethodResponse Lambda you deployed to test this stack."
+    }
+  },
+  "Conditions": {
+    "NoApiDescription": {
+      "Fn::Equals": [
+        "",
+        {
+          "Ref": "RestApiDescription"
+        }
+      ]
+    },
+    "NoApiBaseApiId": {
+      "Fn::Equals": [
+        "",
+        {
+          "Ref": "RestApiBaseApiId"
+        }
+      ]
+    },
+    "MethodRequiresApiKey": {
+      "Fn::Equals": [
+        "YES",
+        {
+          "Ref": "DoesMethodRequireApiKey"
+        }
+      ]
+    }
+  },
+  "Resources": {
+    "MyRestApi": {
+      "Type": "Custom::ApiGatewayRestApi",   
+      "Properties": {
+        "ServiceToken": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              "aws",
+              "lambda",
+              {
+                "Ref": "AWS::Region"
+              },
+              {
+                "Ref": "AWS::AccountId"
+              },
+              "function",
+              {
+                "Ref": "RestApiCustomResourceLambdaName"
+              }
+            ]
+          ]
+        },
+        "Name": {
+          "Ref": "RestApiName"
+        },
+        "Description": {
+          "Fn::If": [
+            "NoApiDescription",
+            {
+              "Ref": "AWS::NoValue"
+            },
+            {
+              "Ref": "RestApiDescription"
+            }
+          ]
+        },
+        "BaseApiId": {
+          "Fn::If": [
+            "NoApiBaseApiId",
+            {
+              "Ref": "AWS::NoValue"
+            },
+            {
+              "Ref": "RestApiBaseApiId"
+            }
+          ]
+        }
+      }
+    },
+    "MyMethod": {
+      "DependsOn": [
+        "MyRestApi"
+      ],
+      "Type": "Custom::ApiGatewayMethod",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              "aws",
+              "lambda",
+              {
+                "Ref": "AWS::Region"
+              },
+              {
+                "Ref": "AWS::AccountId"
+              },
+              "function",
+              {
+                "Ref": "MethodCustomResourceLambdaName"
+              }
+            ]
+          ]
+        },
+        "ApiKeyRequired": {
+          "Fn::If": [
+            "MethodRequiresApiKey",
+            true,
+            false
+          ]
+        },
+        "AuthorizationType": {
+          "Ref": "MethodAuthorizationType"
+        },
+        "HttpMethod": {
+          "Ref": "MethodHttpMethod"
+        },
+        "ResourceId": {
+          "Fn::GetAtt": [
+            "MyRestApi",
+            "RootResourceId"
+          ]
+        },
+        "RestApiId": {
+          "Ref": "MyRestApi"
+        },
+        "RequestModels": {
+          "application/json": "Empty"
+        },
+        "RequestParameters": {
+          "method.request.querystring.fooparam": true
+        }
+      }
+    },
+    "MyMethodResponseOk": {
+      "DependsOn": [
+        "MyRestApi",
+        "MyMethod"
+      ],
+      "Type": "Custom::ApiGatewayMethodResponse",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              "aws",
+              "lambda",
+              {
+                "Ref": "AWS::Region"
+              },
+              {
+                "Ref": "AWS::AccountId"
+              },
+              "function",
+              {
+                "Ref": "MethodResponseCustomResourceLambdaName"
+              }
+            ]
+          ]
+        },
+        "StatusCode": "200",
+        "HttpMethod": {
+          "Ref": "MethodHttpMethod"
+        },
+        "ResourceId": {
+          "Fn::GetAtt": [
+            "MyRestApi",
+            "RootResourceId"
+          ]
+        },
+        "RestApiId": {
+          "Ref": "MyRestApi"
+        },
+        "ResponseModels": {
+          "application/json": "Empty",
+          "text/xml": "Empty"
+        },
+        "ResponseParameters": {
+          "method.response.header.Expires": true
+        }
+      }
+    },
+    "MyMethodResponseInternalServerError": {
+      "DependsOn": [
+        "MyRestApi",
+        "MyMethod"
+      ],
+      "Type": "Custom::ApiGatewayMethodResponse",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::Join": [
+            ":",
+            [
+              "arn",
+              "aws",
+              "lambda",
+              {
+                "Ref": "AWS::Region"
+              },
+              {
+                "Ref": "AWS::AccountId"
+              },
+              "function",
+              {
+                "Ref": "MethodResponseCustomResourceLambdaName"
+              }
+            ]
+          ]
+        },
+        "StatusCode": "500",
+        "HttpMethod": {
+          "Ref": "MethodHttpMethod"
+        },
+        "ResourceId": {
+          "Fn::GetAtt": [
+            "MyRestApi",
+            "RootResourceId"
+          ]
+        },
+        "RestApiId": {
+          "Ref": "MyRestApi"
+        },
+        "ResponseModels": {
+          "application/json": "Error",
+          "text/xml": "Error"
+        },
+        "ResponseParameters": {
+          "method.response.header.Expires": true
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "MyRestApiId": {
+      "Description": "The unique ID value across your entire account for the created API.",
+      "Value": {
+        "Ref": "MyRestApi"
+      }
+    },
+    "MyRestApiRootResource": {
+      "Description": "The 10 char alphanum ID of the / resource for MyRestApi",
+      "Value": {
+        "Fn::GetAtt": [
+          "MyRestApi",
+          "RootResourceId"
+        ]
+      }
+    },
+    "MyMethodConsoleUrl": {
+      "Description": "The AWS Console URL for inspecting the created method.",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://console.aws.amazon.com/apigateway/home?region=",
+            {
+              "Ref": "AWS::Region"
+            },
+            "#/restapis/",
+            {
+              "Ref": "MyRestApi"
+            },
+            "/resources/",
+            {
+              "Fn::GetAtt": [
+                "MyRestApi",
+                "RootResourceId"
+              ]
+            },
+            "/methods/",
+            {
+              "Ref": "MethodHttpMethod"
+            }
+          ]
+        ]
+      }
+    }
+  }
+}
