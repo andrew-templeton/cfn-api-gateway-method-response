@@ -1,6 +1,6 @@
 {
   "name": "cfn-api-gateway-method-response",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "dependencies": {
     "cfn-lambda": {
       "version": "0.6.1",

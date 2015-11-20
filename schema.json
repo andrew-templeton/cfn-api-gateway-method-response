@@ -27,11 +27,11 @@
     },
     "ResourceId": {
       "type": "string",
-      "pattern": "[a-z0-9]{10}"
+      "pattern": "^[a-z0-9]+$"
     },
     "RestApiId": {
       "type": "string",
-      "pattern": "[a-z0-9]{10}"
+      "pattern": "^[a-z0-9]{10}$"
     },
     "ResponseModels": {
       "type": "object",

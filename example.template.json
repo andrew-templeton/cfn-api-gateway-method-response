@@ -21,7 +21,7 @@
     },
     "MethodCustomResourceLambdaName": {
       "Type": "String",
-      "Default": "cfn-api-gateway-method-0-2-2",
+      "Default": "cfn-api-gateway-method-0-2-3",
       "Description": "The name of the ApiGatewayMethod Lambda you deployed to test this stack."
     },
     "MethodAuthorizationType": {
@@ -58,7 +58,7 @@
     },
     "MethodResponseCustomResourceLambdaName": {
       "Type": "String",
-      "Default": "cfn-api-gateway-method-response-0-1-1",
+      "Default": "cfn-api-gateway-method-response-0-1-2",
       "Description": "The name of the ApiGatewayMethodResponse Lambda you deployed to test this stack."
     }
   },
