@@ -1,6 +1,6 @@
 {
   "name": "cfn-api-gateway-method-response",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Custom::ApiGatewayMethodResponse | AWS CloudFormation Custom Lambda Resource | API Gateway MethodResponse",
   "main": "index.js",
   "scripts": {
@@ -33,6 +33,6 @@
   },
   "homepage": "https://github.com/andrew-templeton/cfn-api-gateway-method-response#readme",
   "dependencies": {
-    "cfn-lambda": "0.8.0"
+    "cfn-lambda": "0.8.1"
   }
 }
